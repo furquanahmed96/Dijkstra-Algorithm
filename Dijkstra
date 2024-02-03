@@ -1,0 +1,93 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+#include <unordered_map>
+#include <algorithm>
+
+
+using namespace std;
+
+class Graph {
+public:
+    unordered_map<int, vector<pair<int, int>>> adjacencyList;
+
+    void addEdge(int u, int v, int weight) {
+        adjacencyList[u].push_back({v, weight});
+        adjacencyList[v].push_back({u, weight}); 
+    }
+
+    pair<int, vector<int>> dijkstra(int start, int end) {
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        vector<int> distance(adjacencyList.size(), INT_MAX);
+        vector<int> parent(adjacencyList.size(), -1);
+
+        pq.push({0, start});
+        distance[start] = 0;
+
+        while (!pq.empty()) {
+            int u = pq.top().second;
+            pq.pop();
+
+            for (const auto& neighbor : adjacencyList[u]) {
+                int v = neighbor.first;
+                int weight = neighbor.second;
+
+                if (distance[u] + weight < distance[v]) {
+                    distance[v] = distance[u] + weight;
+                    parent[v] = u;
+                    pq.push({distance[v], v});
+                }
+            }
+        }
+
+        return {distance[end], buildPath(parent, start, end)};
+    }
+
+private:
+    vector<int> buildPath(const vector<int>& parent, int start, int end) {
+        vector<int> path;
+        for (int at = end; at != -1; at = parent[at]) {
+            path.push_back(at);
+        }
+        reverse(path.begin(), path.end());
+        return path;
+    }
+};
+
+int main() {
+    Graph graph;
+
+    graph.addEdge(0, 3, 5);
+    graph.addEdge(0, 8, 6);
+    graph.addEdge(1, 4, 5);
+    graph.addEdge(1, 6, 9);
+    graph.addEdge(2, 2, 9);
+    graph.addEdge(2, 9, 5);
+    graph.addEdge(2, 6, 9);
+    graph.addEdge(3, 5, 8);
+    graph.addEdge(3, 6, 14);
+    graph.addEdge(4, 5, 7);
+    graph.addEdge(5, 9, 16);
+    graph.addEdge(5, 6, 8);
+    graph.addEdge(6, 7, 1);
+    graph.addEdge(6, 8, 6);
+    graph.addEdge(7, 8, 7);
+
+    int start, end;
+    cout << "Enter the First node: ";
+    cin >> start;
+    cout << "Enter the Last node: ";
+    cin >> end;
+
+    auto result = graph.dijkstra(start, end);
+
+    cout << "Cost of the shortest path: " << result.first << endl;
+    cout << "Path of the lowest cost: ";
+    for (int node : result.second) {
+        cout << node << " ";
+    }
+    cout << endl;
+
+    return 0;
+}
